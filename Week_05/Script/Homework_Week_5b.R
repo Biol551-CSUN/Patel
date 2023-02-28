@@ -78,7 +78,7 @@ ggplot(data=Summarised_FullData,
        mapping = aes(x = timestamp,
                      y = mean_Temp)) +
   geom_line() +
-  labs(title = "Variation in Mean Salinity with Mean temperature", x = "Mean Salinity",
+  labs(title = "Variation in Mean temperature with time", x = "Time",
        y = "Mean Temperature") +
   scale_color_manual(values = beyonce_palette(2)) +
   theme_bw() +
