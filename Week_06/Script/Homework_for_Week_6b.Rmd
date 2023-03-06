@@ -1,0 +1,91 @@
+---
+title: "Biogeochemical Data Script"
+author: "Lipi"
+date: "`r Sys.Date()`"
+output: 
+  html_document: 
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+# Introduction
+Today we are going to work with **Biochemistry Data** to practice _RMarkdown_.
+
+
+# Load the libraries
+```{r}
+library(here)
+library(tidyverse)
+library(ggthemes)
+library(ggplot2)
+library(kableExtra)
+```
+
+# Load the data
+```{r}
+ChemData<-read_csv(here("Week_06","Data", "chemicaldata_maunalua.csv"))
+View(ChemData)
+glimpse(ChemData)
+```
+
+
+# Remove all the NAs from your data to get a clean data
+```{r}
+ChemData_clean<-ChemData %>%
+  drop_na() #filters out everything that is not a complete row
+View(ChemData_clean)
+```
+
+# Make a table using the clean data
+We will make a table for Spring Season with one sample from each Zone and note the following variables:
+
+- Salinity
+- Temperature
+- pH
+
+| **Zone**  | **Salinity** | **Temperature**  | **pH** |
+|:----------|:------------:|:----------------:|:------:|
+| Transition | 27.74029 | 23.75506 | 7.909 |
+| Diffuse  | 29.12293 | 23.26102 | 8.005 |
+| Ambient  | 34.57789 | 24.10860  | 8.088 |
+| Offshore  | 34.60953 | 24.43115 | 7.975 |
+
+```{r}
+ChemData_clean %>%
+  group_by(Zone) %>%
+  summarise(MeanSalinity = mean(Salinity, na.rm = TRUE),
+            MeanTemperature = mean(Temp_in, na.rm = TRUE),
+            MeanpH = mean(pH, na.rm = TRUE)) %>%
+  kbl() %>% # make it a kable table
+  kable_classic()
+
+```
+
+
+
+# Make a simple ggplot
+```{r , fig.asp=1.25, fig.height=5, fig.width=8, fig.align='center', fig.cap="This is a histogram of pH values from different zones", echo =  FALSE}
+ChemData_clean %>%
+  ggplot(aes(y = pH, fill = Zone))+ # assign x and y axes
+  geom_histogram() +
+labs(x = "Count", y = "pH value", title = "Variation in pH values of the samples collected from four different zones") +
+theme_classic() +
+theme(axis.title = element_text(size = 22,
+                                color = "brown"),
+        panel.background = element_rect(fill = "linen"))
+
+```
+
+# Save the plot
+```{r}
+ggsave(here("Week_06","Output","Homework_for_Week_6b.png"),
+       width = 8, height = 5) # in inches)
+```
+
