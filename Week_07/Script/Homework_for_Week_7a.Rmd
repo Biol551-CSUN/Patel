@@ -66,3 +66,10 @@ geom_polygon(data = world, # opens the world data
             xlim = c(-180,180)) # Use a mercator projection
 
 ```
+
+# Save your plot.
+```{r}
+ggsave(here("Week_07","Output","Homework_Week_07.png"),
+       width = 14, height = 10) # in inches)
+```
+
