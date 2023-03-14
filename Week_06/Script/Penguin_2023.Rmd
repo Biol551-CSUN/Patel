@@ -13,7 +13,8 @@ output:
 knitr::opts_chunk$set(
 	echo = TRUE,
 	message = FALSE,
-	warning = FALSE)
+	warning = FALSE
+)
 ```
 
 # Introduction
@@ -21,16 +22,19 @@ knitr::opts_chunk$set(
 Today we are going to work with the penguin data to learn *RMarkdown*.
 
 # Load Libraries
+
 ```{r}
 library(here)
 library(tidyverse)
 library(palmerpenguins)
 ```
+
 # Inspect the data
 
 ```{r}
 glimpse(penguins) # Look at the penguin data
 ```
+
 # Make a plot
 
 Plot the penguin data with bill length by bill depth.
@@ -46,4 +50,3 @@ penguins %>% # using the penguin dataset
        color = "Species") +
   theme_bw()
 ```
-

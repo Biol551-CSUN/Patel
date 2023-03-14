@@ -1,0 +1,77 @@
+---
+title: "Penguin Script 2"
+author: "Lipi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE,
+	fig.path = "../Output/")
+```
+
+# Introduction
+
+Today we are going to work with the penguin data to learn *RMarkdown*.
+
+# Load Libraries
+
+```{r}
+library(here)
+library(tidyverse)
+library(palmerpenguins)
+library(kableExtra)
+library(memer)
+
+```
+# Inspect the data
+
+```{r}
+glimpse(penguins)
+```
+# Make a ggplot with penguin data
+
+```{r penguin, fig.asp=1.2, fig.align='center', fig.cap="This is a boxplot of penguins", echo =  FALSE}
+penguins %>% # using the penguin dataset
+  ggplot(aes(x = body_mass_g,
+             y = flipper_length_mm,
+             color = species)) +
+  geom_boxplot() +
+  labs(x = "Body Mass (g)", y = "Flipper Length (mm)",
+       color = "Species") +
+  theme_bw()
+```
+
+# Make a table
+
+| Time  | Session | Topic    |
+|:------|:-------:|---------:|
+| _left_ | _center_| _right_ |
+| 01:00  | 1       | Anatomy |
+| 01:50  |         | *Break* |
+| 02:00  | 2       | Tables  |
+| 02:45  |         | *Break* |
+
+```{r}
+penguins %>%
+  group_by(species) %>%
+  summarise(billmean = mean(bill_length_mm, na.rm = TRUE)) %>%
+  kbl() %>% # make it a kable table
+  kable_classic()%>% 
+  row_spec(2, bold = T, color = "white", background = "red") %>%
+  kable_styling(full_width = FALSE)
+
+```
+
+```{r}
+
+meme_get("DistractedBf") %>% 
+  meme_text_distbf("Silly R package", "BIOL 551 students", "actual coding")
+```
+
