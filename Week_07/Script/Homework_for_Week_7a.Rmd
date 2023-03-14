@@ -1,0 +1,68 @@
+---
+title: "Homework_for_Week_7a"
+author: "Lipi"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+# Load the libraries
+
+```{r}
+library(tidyverse)
+library(here)
+library(maps)
+library(mapdata)
+library(mapproj)
+library(ggplot2)
+```
+
+# Read in the data
+
+```{r}
+meteorites <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-06-11/meteorites.csv")
+View(meteorites)
+
+# get data for the entire world
+world<-map_data("world")
+head(world)
+
+```
+
+# Filter out meteorites fallen/found from 1950-1960.
+
+```{r}
+mutated_met_data<-meteorites %>%
+  drop_na() %>%
+  filter( year >= "1950", year <= "1960") %>% # filters out range 1950-1960
+  mutate(mass_kg = mass/1000) # mutates mass from g to kgs
+View(mutated_met_data)
+  
+```
+
+# Plot a map of the world.
+
+```{r meteorites_around_the_world, fig.align='center', fig.cap="This depicts the size and geographical distribution of meteorites fallen in between 1950-1960", echo =  TRUE}
+ggplot()+
+geom_polygon(data = world, # opens the world data
+               aes(x = long, # assigns axes
+                   y = lat,
+                   group = group), 
+               fill = "brown") +
+  geom_point(data = mutated_met_data, # adds points as per mutated meteorites data
+             aes(x = long, # assigns axes 
+                 y = lat, 
+                 size = mass_kg))+ 
+  theme(panel.background = element_rect(fill = "lightblue"))+ # changes background to lightblue for water
+  labs(x = "Latitude", y = "Longitude", title = "Size and geographical distribution of meteorites fallen in between 1950-1960", size = "Mass (Kg)")+ # adds labels to axes and title
+  coord_map(projection = "mercator",
+            xlim = c(-180,180)) # Use a mercator projection
+
+```
