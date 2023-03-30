@@ -1,0 +1,153 @@
+---
+title: "Good plot and bad plot assignment"
+author: "Lipi"
+date: "`r Sys.Date()`"
+output: 
+  html_document: 
+    toc: TRUE
+    toc_float: TRUE
+    theme: sandstone
+    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+
+# **Load the libraries**
+
+```{r}
+library(tidyverse)
+library(here)
+library(tidytuesdayR)
+library(ggplot2)
+library(ggthemes)
+library(tidyr)
+library(dplyr)
+library(ggridges)
+library(beyonce)
+```
+
+
+# **Read in the data**
+
+```{r}
+olympics <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-07-27/olympics.csv')
+View(olympics)
+```
+
+
+# **Creating a Bad Plot**
+
+*Filter out the data of interest*
+
+Here, I have filtered out year range: 1960 - 1965 and sport: Swimming.
+
+```{r}
+filtered_olympics_bad<-olympics %>%
+  #drop_na() %>%
+  filter(year >= "1960", year <= "1965", sport == "Swimming")
+View(filtered_olympics_bad)
+```
+
+*Create a bad plot*
+
+```{r fig.width=16, fig.height=8}
+filtered_olympics_bad %>% # uses this data
+  ggplot(aes(x = noc, # makes a ggplot with given x and y axes
+             y = medal,
+             color = medal)) +
+  geom_jitter(width = 0.5) + # adds a geom layer, dots
+  labs(x = "Medals", y = "Meats", 
+       title = "Meats in swimming olympics") + # adds labels to axes
+  theme(axis.title = element_text(size = 24, # fixes the size and color of axes titles
+                                  color = "purple"),
+      panel.background = element_rect(fill = "coral")) + # coloring the background 
+theme(title = element_text(size=15, color = "bisque2")) # fixes the size and color of plot title
+```
+
+*Save your Bad plot*
+
+```{r}
+ggsave(here("Good_plot_and_Bad_plot","Output","Bad_plot.png"),
+       width = 16, height = 8) # in inches)
+```
+
+# Why is the above bad plot **BAD**?
+
+**What is wrong with data?**
+
+- Filtered data includes unnecessary N/A values
+- Overlapping data points
+- Background color does not contrast with color of the data points
+
+**What is wrong with title?**
+
+- Font size is too small
+- Words do not make sense (meats?)
+- Color is too light for the white background
+
+**What's wrong with axes titles and legend?**
+
+- Axes titles are spelled incorrect and also flipped
+- x-axis labels are too close to each other
+- Color code of the legends are not related to the color of medals
+
+Now let's improvise our bad plot by keeping these points in consideration.
+
+# **Creating a Good Plot**
+
+*Filter out the data of your interest*
+
+Here, I have filtered out year range: 1960 - 1980 and sport: Swimming.
+
+```{r}
+filtered_olympics_good<-olympics %>%
+  drop_na() %>% # drops values with N/A
+  filter(year >= "1960", year <= "1980", sport == "Swimming")
+View(filtered_olympics_good)
+```
+
+*Create a good plot*
+
+```{r Good_plot, fig.align='center', fig.width=10, fig.height=6, fig.cap="This depicts the medals won in Swimming by different teams between 1960-1980", echo =  TRUE}
+filtered_olympics_good %>% # uses this data
+  ggplot(aes(x = team, # makes a ggplot with given x and y axes
+             y = medal,
+             group = medal, # remember to use "group" when using density gridges2
+             fill = medal)) +
+  geom_density_ridges2() +
+  labs(x = "Teams", y = "Medals", 
+       title = "Data for Swimming Olympics (1960-1980)", size= 36, face = 'bold') + # adds labels to axes
+  scale_fill_manual(values = c("#CD7F32", "#FFD700", "#808080")) + # color codes
+  theme_classic() + # adds theme
+  theme(axis.title = element_text(color = "midnightblue"),
+      axis.text.x = element_text(angle = 45, vjust=0.8, hjust=0.8),
+      panel.background = element_rect(fill = "ivory3")) + # adjusting the size, color and background
+  theme(plot.title = element_text(hjust = 0.5)) + # aligns the title to center
+theme(title = element_text(size=12, face='bold', color = "midnightblue")) # adjusting the size and color of title
+```
+
+*Save your Good plot*
+
+```{r}
+ggsave(here("Good_plot_and_Bad_plot","Output","Good_plot.png"),
+       width = 10, height = 6) # in inches)
+```
+
+# Why is the above good plot **GOOD**?
+
+- Title is precise, clear, and aligned
+- Axes titles are spelled correctly and placed on the correct axes
+- x-axis labels are clearly spaced
+- Color of the background contrasts with that of ridges and also the labels
+- Plot legends are color coded nicely with respective color of the medals
+- Clear demarcation and visualization of data on the plot
+- It has a caption describing the plot
+
+THANK YOU! :)
