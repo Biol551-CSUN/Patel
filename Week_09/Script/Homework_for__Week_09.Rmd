@@ -1,0 +1,123 @@
+---
+title: "Homework for Week_09"
+author: "Lipi"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Instructions for LAB
+
+- Use any dataset you would like and make two useful functions. 
+- One that is a plot and one that is not. 
+- Turn in your functions using RMarkdown with at least 2 examples for each function showing its flexibility. 
+- Due, as always, at 1pm on Tuesday.
+
+
+## Load the libraries
+```{r}
+library(tidyverse)
+library(here)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+
+library(gcookbook) # For the data set
+```
+
+## Read in the data
+```{r}
+## dataset 1 (heightweight)
+# Already loaded with library
+View(heightweight) 
+
+## dataset 2 (heightweight_2)
+url <- "https://raw.githubusercontent.com/rmcelreath/rethinking/master/data/Howell1.csv"
+HW_2 <- read.csv(url, sep = ";")
+str(HW_2)
+View(HW_2)
+```
+
+## Let's create a function to convert height from cm to inches and weight from kgs to pounds
+```{r}
+## 1
+# creates a function to convert height from cm to inches
+cm_to_In <- function(cm) {
+  In <- (cm / 2.54)
+  return(In)
+}
+
+cm_to_In(154) # example to test
+
+# convert height in HW_2 dataset from cm to inches
+modified_HW_2 <-HW_2 %>% # gives new name and opens HW_2 dataset
+  mutate(heightIn=(cm_to_In(height))) # mutates height from cm to inches using the function that we just created
+head(modified_HW_2)
+
+
+
+############################################################################################
+## 2
+# creates a function to convert weight from kg to pounds
+kg_to_Lb <- function(kg) {
+  Lb <- (kg * 2.205)
+  return(Lb)
+}
+
+kg_to_Lb(95) # example to test
+
+# convert weight in HW_2 dataset from kg to pounds
+modifieddd_HW_2 <-HW_2 %>% # gives new name and opens HW_2 dataset
+  mutate(weightLb=(kg_to_Lb(weight))) # mutates height from cm to inches using the function that we just created
+head(modifieddd_HW_2)
+
+
+############################################################################################
+### Convert sex- binary to character-- DOUBT
+
+sex_HW_2 <- modifieddd_HW_2 %>% # opens the dataset
+  mutate(sex = recode(male, # choose column male and recode as required
+                    "0" = "f", # 0 to f and 1 to m
+                    "1" = "m")) %>% 
+  mutate(x = as.character(levels(male))[sex]) # mutate male to sex and keep male as it is
+View(sex_HW_2)
+
+```
+
+## Now let's create another function using a plot
+This function will make it easier for us to create a histogram using a dataset that compares a variable by sex.
+```{r}
+plot_fun<-function(data, x, sex){ 
+          ggplot(data, aes(x = {{x}},
+                            fill = {{sex}}))+
+    geom_histogram() + # creates a histogram
+          # geom_dotplot(binaxis="y", stackdir = "up")+ # Creates a dot plot
+          theme_classic()  + # sets classic theme
+          theme(plot.title = element_text(hjust = 0.5), # Center alignment for title
+                plot.background = element_rect(fill = "grey")) # Change background color
+}
+
+## Example 1 using heighweight data- height and sex
+plot_fun(data = heightweight, x = heightIn, sex = sex) + # uses function to plot
+  labs(x = "Height (In)", # Labels x and y axes
+     title = "Comparison of the height of males and females") # adds label to title
+
+# Save your plot 1
+ggsave(here("Week_09","Output","Homework_ plot_1.png"),
+       width = 7, height = 5) # in inches)
+
+
+## Example 2 using sex_HW_2 data - weight and sex
+plot_fun(data = sex_HW_2, x = weightLb, sex = sex) + # uses function to plot
+  labs(x = "Weight (Lbs)", # Labels x and y axes
+     title = "Comparison of the weight of males and females") # adds label to title
+
+# Save your plot 2
+ggsave(here("Week_09","Output","Homework_plot_2.png"),
+       width = 7, height = 5) # in inches)
+```
+
