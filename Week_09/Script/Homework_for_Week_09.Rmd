@@ -1,0 +1,125 @@
+---
+title: "Homework for Week 09"
+author: "Lipi"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Instructions for LAB
+
+- Use any dataset you would like and make two useful functions. 
+- One that is a plot and one that is not. 
+- Turn in your functions using RMarkdown with at least 2 examples for each function showing its flexibility. 
+- Due, as always, at 1pm on Tuesday.
+
+
+Load the libraries
+```{r}
+library(tidyverse)
+library(here)
+library(tidyr)
+library(dplyr)
+library(tidytuesdayR)
+library(ggplot2)
+library(ggthemes)
+```
+
+Read in the data
+
+```{r}
+tdf_winners <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-07/tdf_winners.csv')
+glimpse(tdf_winners)
+View(tdf_winners)
+
+```
+
+
+```{r}
+artwork <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-01-12/artwork.csv')
+glimpse(artwork)
+View(artwork)
+```
+
+
+```{r}
+student_debt <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-02-09/student_debt.csv')
+glimpse(student_debt)
+View(student_debt)
+```
+
+# First Function
+
+**Let's create a function to convert dollars (D) to rupees (R).**
+
+State two examples: 
+
+- 5 dollars to rupees
+- 450 dollars to rupees
+
+```{r}
+unit_mm_to_m <- function(unit_mm) {
+  unit_m <- (unit_mm / 1000)
+  return(unit_m)
+  }
+unit_mm_to_m(1)
+unit_mm_to_m(1000)
+```
+
+# Second Function
+
+First let's create a simple ggplot
+
+```{r}
+student_debt %>%
+  ggplot(mapping = aes(x = year, y = loan_debt, color = race)) + # assigning x and y axes
+  geom_line() + # choose a type of geom
+  geom_point() + # adding a geom layer for better visualization
+  labs(x = "Year", y = "Loan Debt (in dollars, $)", 
+       title = "The variation in debt of loan from students of different races") + # adds labels to axes
+  theme(plot.title = element_text(hjust = 1.0)) + # centers plot title
+  theme(panel.background = element_rect(fill = 'lightblue', color = 'purple')) +
+  scale_x_continuous(breaks = c(1980, 1985, 1990, 1995, 2000, 2005, 2010, 2016, 2020)) + # set marks for x and y axes
+  scale_y_continuous(breaks = c(2000, 4000, 6000, 8000, 10000, 12000, 14000, 16000)) +
+  theme_igray()
+```
+
+Let's create a simple plot
+
+```{r}
+tdf_winners %>%
+  drop_na(height, distance) %>%
+  ggplot(mapping = aes(x = height, y = distance)) + # assigning x and y axes
+  geom_line() # choose a type of geom
+```
+
+```{r}
+artwork %>%
+  drop_na(year, height) %>%
+  ggplot(mapping = aes(x = year, y = height)) + # assigning x and y axes
+  geom_line()
+```
+
+```{r}
+library(gcookbook) # For the data set
+# View(heightweight)
+ggplot(heightweight, aes(x=weightLb, y=heightIn, fill = sex)) +
+geom_dotplot(binaxis="y", stackdir = "up")
+```
+
+```{r}
+
+url <- "https://raw.githubusercontent.com/rmcelreath/rethinking/master/data/Howell1.csv"
+heightweight_2 <- read.csv(url, sep = ";")
+str(heightweight_2)
+View(heightweight_2)
+```
+
+```{r}
+ggplot(heightweight_2, aes(x=weight, y=height)) +
+geom_dotplot(binaxis="y")
+```
+
