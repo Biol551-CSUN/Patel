@@ -1,0 +1,77 @@
+---
+title: "Homework for Week_11"
+author: "Lipi"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = TRUE,
+	warning = FALSE
+)
+```
+
+# What are we supposed to do for today's lab?
+
+Working with intertidal data. Today you will need to use skills that you have learned in **working with words** to clean up some issues with the character data and use what you learned today to **reorder your factors into orders that make sense**. (Also the **column headers could be better**...). HINT: New package idea to fix this is using the *janitor package*.
+
+**Your goal, as per usual, is to make a plot, any plot where one of the axes is a factor. Save everything in the appropriate folders.**
+
+You have two possible files to play with in the data folder (you don't HAVE to use both): intertidal.csv and intertidal_latitude.csv (as well as a data dictionary)
+
+Importantly, if you decide to visualize anything by tide height it should go from **low to mid to high tide.**
+
+
+# Load the libraries
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+```
+
+# Read in the data
+```{r}
+intertidal<-read_csv(here("Week_11","Data","intertidaldata.csv"))
+
+glimpse(intertidal)
+View(intertidal)
+```
+
+# Now lets clean by using our knowledge from **working with words** lecture and **reordering factor** using knowledge from today's lecture
+```{r}
+clean_intertidal <- intertidal %>% 
+  clean_names() %>% # renames the column titles in default case, snake_case (Janitor package)
+  mutate(quadrat = str_replace_all(quadrat, pattern = "\\.|[0-9]", replacement = " ")) %>% # deletes unwanted numbers in quadrat column
+  mutate(quadrat = str_trim(quadrat)) %>% # trims the white space from quadrat column
+  mutate(quadrat = factor(quadrat, levels = c("Low","Mid","High"))) %>% # converts quadrat into factors and arranges them from low-> mid -> high, which makes sense!
+  filter(site == "Dana Point") %>% # filters values for only one site, Dana Point
+  drop_na() # filters out everything that is not a complete row
+head(clean_intertidal)
+
+```
+
+# Let's make a simple plot
+```{r Algae at Dana point, fig.align='center'}
+clean_intertidal %>% # using the cleaned intertidal dataset
+  ggplot(aes(x = quadrat, y = algae,
+             fill = quadrat)) + # assigns xand y axes 
+  geom_col() + # chooses the geom to make a plot
+  labs(x = "Tidal Quadrats", y = "Algal count", 
+       title = "Algal samples collected from different tidal quadrats at Dana Point") + # adds label to axes
+  theme_minimal() + # chooses minimal theme to display
+  theme(plot.title = element_text(hjust = 0.5), # center alignment for title
+                plot.background = element_rect(fill = "beige")) # hanges background color
+```
+
+# Save your plot
+```{r}
+ggsave(here("Week_11","Output","Homework_for_Week_11.png"),
+       width = 8, height = 4) # in inches)
+```
+
