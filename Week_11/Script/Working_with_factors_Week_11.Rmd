@@ -1,0 +1,145 @@
+---
+title: "Working with factors"
+author: "Lipi"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load the libraries
+```{r}
+library(tidyverse)
+library(here)
+```
+
+# Load the data
+```{r}
+#tuesdata <- tidytuesdayR::tt_load(2021, week = 7)
+#income_mean<-tuesdata$income_mean
+income_mean <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-02-09/income_mean.csv')
+```
+
+To make something a factor you put the vector in the function factor()
+```{r}
+fruits<-factor(c("Apple", "Grape", "Banana"))
+fruits
+```
+
+```{r}
+test<-c("A", "1", "2")
+as.numeric(test)
+
+test<-factor(test) # covert to factor
+as.numeric(test)
+```
+
+```{r}
+glimpse(starwars)
+
+# How many individuals of each species are present across all starwars films?
+starwars %>% 
+  filter(!is.na(species)) %>% # remove the NAs
+  count(species, sort = TRUE)
+
+# Let's say we wanted to lump all the species together that had less than 3 individuals. We could use fct_lump() which converts the data into a factor and lumps it together
+
+star_counts<-starwars %>%
+  filter(!is.na(species)) %>%
+  mutate(species = fct_lump(species, n = 3)) %>%
+  count(species)
+star_counts
+```
+
+```{r}
+# A basic ggplot
+
+star_counts %>%
+  ggplot(aes(x = species, y = n))+
+  geom_col()
+
+# Same plot, in order
+star_counts %>%
+  ggplot(aes(x = fct_reorder(species, n), y = n))+ # reorder the factor of species by n
+  geom_col()
+
+# A basic ggplot, in order (make it descending)
+star_counts %>%
+  ggplot(aes(x = fct_reorder(species, n, .desc = TRUE), y = n))+ # reorder the factor of species by n
+  geom_col() +
+  labs(x = "Species")
+```
+
+```{r}
+glimpse(income_mean)
+
+# We will make a plot of the total income by year and quintile across all dollar types.
+total_income<-income_mean %>%
+  group_by(year, income_quintile)%>%
+  summarise(income_dollars_sum = sum(income_dollars))%>%
+  mutate(income_quintile = factor(income_quintile)) # make it a factor
+head(total_income)
+
+
+# Basic line plot
+total_income%>%
+ggplot(aes(x = year, y = income_dollars_sum, color = income_quintile))+
+  geom_line()
+
+# We can reorder line plots by using fct_reorder2, which reorders the data by two variables
+total_income%>%
+  ggplot(aes(x = year, y = income_dollars_sum, 
+             color = fct_reorder2(income_quintile,year,income_dollars_sum)))+
+  geom_line()+
+  labs(color = "income quantile")
+```
+
+```{r}
+# Let's say we have a vector and we want to put it in a specific order that we say. Not necessarily because its the largest or smallest value
+
+x1 <- factor(c("Jan", "Mar", "Apr", "Dec"))
+x1
+
+# This order is probably not what we want... You can set the specific order of the levels
+x1 <- factor(c("Jan", "Mar", "Apr", "Dec"), levels = c("Jan", "Mar", "Apr", "Dec"))
+x1
+```
+
+```{r}
+# Back to starwars. Let's say we instead of grouping our species that have < 3 counts into "Other" we just filter them out.
+
+starwars_clean<-starwars %>% 
+  filter(!is.na(species)) %>% # remove the NAs
+  count(species, sort = TRUE) %>%
+  mutate(species = factor(species)) %>% # make species a factor
+  filter(n>3) # only keep species that have more than 3
+starwars_clean
+
+# Check the levels of the factor
+levels(starwars_clean$species)
+
+# ADD: droplevels() # drop extra levels
+starwars_clean<-starwars %>% 
+  filter(!is.na(species)) %>% # remove the NAs
+  count(species, sort = TRUE) %>%
+  mutate(species = factor(species)) %>% # make species a factor 
+  filter(n>3)  %>% # only keep species that have more than 3 
+  droplevels() # drop extra levels
+
+levels(starwars_clean$species)
+
+# If you want to rename (or recode) a level. For example, lets recode Human to Humanoid.
+# ADD: mutate(species = fct_recode(species, "Humanoid" = "Human"))
+
+starwars_clean<-starwars %>% 
+  filter(!is.na(species)) %>% # remove the NAs
+  count(species, sort = TRUE) %>%
+  mutate(species = factor(species)) %>% # make species a factor 
+  filter(n>3)  %>% # only keep species that have more than 3 
+  droplevels() %>% # drop extra levels 
+  mutate(species = fct_recode(species, "Humanoid" = "Human"))
+starwars_clean
+```
+

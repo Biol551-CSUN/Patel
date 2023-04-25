@@ -1,0 +1,429 @@
+---
+title: "Janitor"
+author: "Nicole Ayala, Marisa Mackie, Hannah Merges, Lipi Patel"
+date: "`r Sys.Date()`"
+output: 
+  prettydoc::html_pretty:
+    toc: TRUE
+    theme: tactile
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	message = FALSE)
+```
+## Introduction to Janitor package
+**Data cleaning and manipulation using Janitor package in R**
+
+It is important to organize and clean the data.frame for clear comparison and better understanding of the data. It also makes the data much easier to analyze (and plot).
+
+Janitor package in R consists of different functions that can be used to clean and organize the data.frame.
+
+The functions we will focus on today are:
+
+* **tabyl()** including **adorn()** + add-on functions
+  
+* **clean_names()**
+
+* **get_one_to_one()**
+  
+* **get_dupes()**
+
+* **top_level()**
+
+### Libraries
+These are the libraries we will be using:
+```{r, echo = TRUE}
+# Load libraries
+library(tidyverse)
+library(here)
+library(palmerpenguins)
+library(janitor)
+```
+
+### Data
+Please load in the following data sets in the correct folder:
+
+* Drug data from Tidy Tuesday
+
+* Fruits_with_dupes data
+
+```{r}
+drugs <- read_csv(here("Data","drugs.csv")) 
+fruits <- read_csv(here("Data","fruits_with_dupes.csv")) 
+```
+
+____________________________________________________________________________
+
+
+### Function 1: **tabyl()** + **adorn()** add-on functions
+
+In data science, all analysts do is count several things while taking into consideration many factors. Base R's table() function has many limitations when it comes to piping as it does not accept input or output data.frames. 
+That is why janitor is extremely useful when it comes to creating tables of count values for distinct levels of factor or character variables. Formatting for table() is pretty difficult unlike using other software like excel or SPSS. Fortunately, janitor's function, tabyl(), makes it so much easier to organize all data.frames, inputs and outputs accordingly while following the forward pipe operator. 
+
+Tabyl() was actually built on dplyr and tidyr packages which is aligned with the tidyverse package. It produces frequency tables with 1-3 variables containing specific metadata so that is why adorn() functions are used alongside with tabyl(), yet it can work with other non-tabyl associated data.frames to format those as well.
+
+Cons: You need to filter out the data or else it will be an overwhelming block of data shown. You can only make up to a Three-Way Tabyl.
+
+_Here we will only be making One-Way and Two-Way Tabyls._
+
+
+#### **Let's Make a One-Way Tabyl**
+* Tabulating one variable is the simplest kind of tabyl:
+* Let's choose **category** as our variable
+```{r}
+tabyl1 <- drugs %>%
+  
+   tabyl(category) # only inputting one variable into a tabyl, percentage will be given  alongside with how many times that category was recorded
+
+ tabyl1 # look at the one-way tabyl
+```
+#### **Let's Make a Two-Way Tabyl (Contingency Table)**
+- Instead of using dplyr::count(), followed by tidyr::pivot_wider() to wide form we only need to make a 2 way tabyl
+- Let's use the variables **category** and **decision_date**
+```{r}
+
+# filter the data
+drugs <- drugs %>%
+   dplyr::filter(decision_date>="2023-01-01") # only want the dates from 2023 and onwards
+t2 <- drugs %>%
+  tabyl(category, decision_date) # There are only 2 categories: human and veterinary; dates have been filtered out to only show 2023 dates
+
+
+t2
+
+
+```
+
+**Now that we have a two-way tabyl(), how do we format the rows, columns, titles, etc. to be more visually appealing?**
+- This is where the adorn() functions come into play!
+
+**Let's Use the adorn_ Functions That Visually Enhance Your Tabyls with Pretty Formatting!**
+
+These are all the adorn() functions...
+
+* #### **adorn_totals()**
+  + "col" gives the total amount of data points at the very end.
+  + "row" gives a total percentage for every data point.
+* #### **adorn_percentages()**
+  + The direction to use for calculating percentages. One of "row", "col", or "all" is known as the denominator.
+* #### **adorn_pct_formatting(digits = x)**
+  + This allows you to change the amount of numbers you can have after the decimal point in your percentage.
+* #### **adorn_ns(position = "...")**
+  + Appends natural splines, changes the ID or the name of a number.
+  +  Ns can be positioned in the front or in the rear end of the percentage, showing how many times that
+  percentage was brought up
+  for that category on that date.
+  + If you need to modify the numbers, such as to format 1000 as 1,000 or 1k, you can do that separately
+  and supply the formatted result here.
+* #### **adorn_title(placement = "top")**
+  + add a column name to the top of a two-way tabyl
+
+
+
+```{r}
+drugs %>%
+  tabyl(category, decision_date, show_missing_levels = FALSE) %>% # There are only 2 categories: human and veterinary; dates have been filtered out to only show 2023 dates, don't want any NAs or missing data points 
+  adorn_totals("row") %>% # it can be by column, by row, or both - one of "row", "col", or c("row", "col")
+  adorn_percentages("all") %>% # it can be by column, by row, or all
+  adorn_pct_formatting(digits = 1) %>% # how many numbers after the decimal in the percentage
+  adorn_ns("rear")%>% # can be moved to the front or the back of the percentage, shows you how many times that category was brought up on that date
+  adorn_title(placement = "top", row_name = "Category", col_name = "Decision Date") # changes the name of your row and column names
+```
+[Click Here to Learn More About tabyl() and adorn()](https://cran.r-project.org/web/packages/janitor/vignettes/tabyls.html)
+
+____________________________________________________________________________
+
+### Function 2: **clean_names()**
+
+When we have data.frames with problematic variable names, we can use the function clean_names() to get a clean data.frame.
+
+#### How does the function **clean_names()** work?
+
+1. identifies and changes letter cases and separators to a consistent format (Ex. *first_Name* to **first_name**)
+
+"snake_case" - default case used by R (all the letters are in lowercase and all the words are separated by an underscore) 
+
+For snake_case, enter: "snake"
+
+You can input **??snakecase::to_any_case** in the console to see what other types of cases are available that you can use if required. 
+
+- lowerCamel: "lower_camel"
+
+- UpperCamel: "upper_camel"
+
+- ALL_CAPS: "all_caps"
+
+- lowerUPPER: "lower_upper"
+
+- UPPERlower: "upper_lower"
+
+- Sentence case: "sentence"
+
+
+2. handles special characters and spaces (Ex. *age?!* to **age**)
+
+3. converts “%” to “percent” and “#” to “number” to retain meaning (Ex. *sleep %* to **sleep_percent**)
+
+4. appends number to duplicated names (Ex. if there are two columns with same name, *city*, one of them will remain same, **city** and other would be converted to **city_2**)
+
+5. Retains numerical values the way they are and separates them from words by an underscore (Ex. *birth date (2000)* to **birth_date_2000**)
+
+Let's code to see how it works!
+
+**First, let's create a dirty data.frame, *df_1* **
+
+```{r}
+df_1 <- as.data.frame(matrix(ncol = 6)) # creates a new data.frame named df_1 which has 6 columns
+names(df_1) <- c("firstName", "age?!", "sleep %",
+                    "city", "city", "birth date (2000)") # gives name to each of the 6 columns in order of the input
+#View(df_1) # opens df_1
+
+```
+
+Awesome!
+
+**Now use the function *clean_names()* to get a data.frame with clean names**
+
+All you have to do is **pipe (%>%)** it to your dirty data.frame and run it.
+
+```{r}
+df_2 <- df_1 %>% # creates a new data.frame, df_2 and opens df_1 to modify it in next step
+  clean_names() # uses the function to produce clean names for columns
+# View(df_2) # opens clean data.frame, df_2
+```
+____________________________________________________________________________
+
+### Function 3: **get_one_to_one()**
+
+#### How does the function **get_one_to_one()** work?
+
+- This function shows which, if any, columns in a data.frame have one-to-one relationships with each other.
+
+-  One liner code for this function is to call the function and enter the rows and columns between which you want to explore 1:1 relationship:
+
+**Format: get_one_to_one(data[a,b])**
+
+- **data** = data.frame of your choice
+- **a** = rows (eg. for first 5 rows, enter 1:5)
+- **b** = columns (eg. for first 6 columns, enter 1:6)
+- If you leave a and/or b blank, it will consider the default value which is all the rows and all the columns of the data
+
+
+**Example 1: First 5 rows and all the columns of data.frame [a=1:5 and b=blank]**
+
+```{r echo=TRUE}
+get_one_to_one(drugs[1:5,]) # shows relation between first 5 rows and all the columns
+```
+
+Output shows us variables (columns) grouped by separate sets of 1:1 clusters. 
+If you change 1:5 to 3:5, it will give you the same result because it is basically comparing the columns and not the rows.
+
+
+**Example 2: All the rows and first 5 columns of data.frame [a=blank and b=1:5]**
+
+```{r}
+get_one_to_one(drugs[,1:5]) # shows relation between all the rows and first 5 columns
+```
+
+
+**Example 3: First 5 rows and first 5 columns of data.frame [a=1:5 and b=1:5]**
+
+```{r}
+get_one_to_one(drugs[1:5,1:5]) # shows relation between first 5 rows and first 5 columns
+```
+
+Output shows one set grouped by 1:1 cluster.
+
+
+Therefore, we **MUST** enter a specific value for rows (a), however, it doesn't matter if you leave the columns (b), blank or enter a specific value.
+
+
+
+#### Think, Pair and Share 
+
+Use different data (ex. penguins data) to explore get_one_to_one() function. 
+
+```{r}
+get_one_to_one(penguins[4:6,])
+```
+
+____________________________________________________________________________
+
+### Function 4: **get_dupes()**
+
+#### Introduction:
+One issue that we sometimes run into when working with data is the presence of duplicate pieces of data, or "dupes".  This means that the **same information** is represented **more than once** in the same dataset.
+
+Below is an example of data, with duplicates highlighted in red.
+
+![example of duplicate data](https://yodalearning.com/wp-content/uploads/4.-DATA-WITH-DUPLICATE-RECORDS.png)
+
+
+
+#### How do dupes happen?
+A few ways that duplicates can happen are via human error:
+
+ * **User inputs data that is already there, i.e. they accidentally copy & pasted it twice**
+
+ | Name | Number |
+ |:----|---:|
+ | CSUN | 1 |
+ | CSUN | 1 |
+ 
+ * **The user inputs the _same_ information in a _different way_**
+
+| Name  | Number |
+ |:-----|----:|
+ | CSUN | 1 |
+ | CSU Northridge | 1 |
+ | Cal State University Northridge | 1 |
+  
+ * **Often these might be case sensitive**
+
+ | Name | Number |
+ |:----|---:|
+ | csun | 1 |
+ | Csun | 1 |
+ | CSUN | 1 |
+  
+ * **Typos**
+
+ | Name | Number |
+ |:---------------|---:|
+ | CSU Northridge | 1 |
+ | CSU Notrhridge | 1 |
+  
+  
+ | ID          | Number |
+ |:------------|-------:|
+ | 12200345000 | 1 |
+ | 12200354000 | 1 |
+
+
+
+#### What can I do about dupes?
+The first step in dealing with dupes is to identify them.
+
+The **Janitor** package has a useful function called **_get_dupes()_** that identifies & returns duplicates for you.
+
+Let's ask Janitor to get duplicates for us!
+
+You can input the data within the arguments of the function, or pipe to the function from the data.
+
+```{r}
+# Returns exact duplicates from your data
+get_dupes(fruits)
+
+```
+You can also specify which columns you are looking for in the data, for example, fruit and rating.
+```{r}
+# Returns exact duplicates from your data
+fruits %>% get_dupes(fruit, rating)
+```
+
+
+As you can see, Janitor returns all the duplicate values for us, and even includes a new column **dupe_count** to tell us _how many_ duplicate rows there are for each piece of data.
+
+
+
+However, **_get_dupes()_** alone will only return **exact** duplicates of data. Misspellings or differences in user input wouldn't show up because they are considered to be **unique values**.
+
+I have gone ahead and extracted the rows that contain _non-exact_ duplicates below so we can see them.
+
+```{r, include = TRUE, echo = FALSE}
+fruits_mispelled <- fruits[c(8, 11, 12, 16, 17, 24, 31, 34),]
+
+head(fruits_mispelled, 8)
+```
+
+As you can see we have a few examples of non-exact duplicates here:
+
+ * Misspellings - _"pomegranate"_ vs _"pomegranite"_
+ 
+ * Variations (plural & singular) - _"banana"_ vs _"bananas"_
+ 
+
+Since **_get_dupes_** returns only _exact duplicates_, we would need the help of other functions/packages to find and eliminate these unique values that are actually duplicates.
+
+
+#### For advanced duplicate searches:
+For a small & manageable list where we are familiar with all the data entries (like the fruits data), we may be able to find most of the duplicates using extra functions that can filter for similarly-spelled words.
+
+However, if we had a very large data set with data entries that we were mostly unfamiliar with, we would have no way of knowing if we managed to find every single possible misspelling/variation of a word. It would be very difficult to find these types of duplicates, and therefore would require more advanced techniques.
+
+
+
+____________________________________________________________________________
+
+### Function 5: **top_levels()**
+
+#### Introduction:  
+-  In this section, we are going to learn how to use the top_levels() function in the janitor package.   
+
+Have you ever had a large dataset and wanted to be able to look at which values or variable are most frequent?  
+
+-  Well, using **top_levels()** can help with that!  
+
+Previous functions we have discussed have been useful for cleaning your data, however, top_levels() is useful to help explore your data a bit further and maybe help you figure out the best way to visualize it and use the information in a plot.  
+
+The output is a tbl_df frequency table with specific rows from your dataset separated into head/middle/tail groups. This function automatically calculates a percent column for you, supports sorting, and can either show or hide NA values. 
+
+You can also ask R to specify how many "top levels" you want to see. **Let's look at a basic example:** 
+
+-  For example, let's say we have a dataset with: 1,1,1,2,3,3,3,3,3,4,5
+
+When you use the top_level() function, R would return and tell you that the value "3" is the most common within the dataset and if you wanted to specify what the _top 2_ most common values were, R would output 3 and 1.  
+
+Pretty cool! 
+
+#### Let's try with some actual code and data now :) 
+
+```{r, warning=FALSE}
+# top_levels(penguins$species) 
+## used hashtag so script would still run but this is a good example to use because it shows that there is an overlap in the top and bottom groups. 
+## So maybe we should use a different dataset with more levels...
+
+```
+
+#### Let's try with a larger dataset:
+```{r}
+## A good way to check to see if the variable you are hoping to filter has enough categories is by using the distinct() function 
+drugs %>% 
+  distinct(category)
+# so category of drug would not work here because again there are only 2 
+
+# but therapeutic area may be a good example to work with 
+drugs %>% 
+  distinct(therapeutic_area) 
+
+#top_levels(drugs$therapeutic_area)
+## ^ again used a hashtag here to run the code BUT if you were just to use this code chunk as is, you would get an error. 
+
+# Why? 
+
+## The variable is not labeled as a factor ... how do we change this? 
+
+## You HAVE to do it within the line of code for top_levels --> if you do it before in a separate line of code, it will not work :/ 
+top_levels(as.factor(drugs$therapeutic_area), 3) ##we can also specify if we want to show NAs or not 
+# the comma after the dataset and specified variable tells R how many "top levels" you want to see  
+
+```
+#### What is the output? 
+The resulting tibble gives you the top and bottom 3 categories and the list of each item within that top and bottom 3 list. It will also tell you how many categories fall within the middle. The percentages are also calculated and can be based off of omitted NAs if that is specified.  
+
+One downfall of this function is that factors may not be that common in data sets. One option is to use _as.factor_ function and convert as we did above. Another more advanced technique, which we don't have time for today, is to actually re-create the df and do some extra fancy coding.  
+
+#### Conclusion:  
+-  you can only use top_levels() with factors! It will not work with numeric values 
+-  the category must also have **at least** 3 levels
+
+-  make sure to install the janitor package and then load the library before trying to use any of the functions from today
+-  if you are ever unsure or forget how the package or function works, remember you can use question marks to get more information about the uses of the function --> ??top_levels
+-  and we didn't get to cover all the functions in this package, so if you are interesting in learning about other functions to help with cleaning and exploring your data, you can check out the package features [here](https://cran.r-project.org/web/packages/janitor/vignettes/janitor.html#count-factor-levels-in-groups-of-high-medium-and-low-with-top_levels) 
+
+_____________________________
+_____________________________
+###### Thank you for reading! 
